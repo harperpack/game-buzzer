@@ -1,0 +1,55 @@
+html {
+    font-family: sans-serif;
+}
+
+.game-container {
+    display: grid;
+    padding: 5%;
+    grid-row-gap: 5%;
+}
+
+.buzzer {
+    background-color: #ffffff;
+/*    font-family: 'Goldman', cursive;*/
+    text-align: center;
+    font-size: 500%;
+    color: #FC5185;
+    border-radius: 10px;
+    border: solid 5px #FC5185;
+    font-weight: 100;
+    transition-property: color, background-color, font-weight;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+/*        color 0.5s linear, background-color 0.5s linear;*/
+}
+
+.buzzer:hover{
+/*    background-color: #007c57;*/
+    cursor: pointer;
+    color: #ffffff;
+    background-color: #FC5185;
+    font-weight: 900;
+    
+/*    border-radius: 100%;*/
+}
+
+.alt-buzz {
+    font-size: 150%;
+    text-align: center;
+    margin-top: -2%;
+}
+
+kbd {
+    font-size: 200%;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.buzz-in-container {
+    align-items: right;
+    font-size: 150%;
+}
+
+.buzz-list li {
+    padding: 1%;
+}
