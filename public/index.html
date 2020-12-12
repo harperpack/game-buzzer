@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <head>
+        <title>Guzz, a Game Buzzer</title>
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+                box-sizing: border-box;
+/*                overflow: hidden;*/
+            }
+            body {
+                display: grid;
+                grid-template-columns: 25% 25% 25% 25%;
+                grid-template-rows: auto auto 1fr 1fr auto;
+                grid-row-gap: 0.5rem;
+                height: 100vh;
+            }
+            header {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                padding: 0.5%;
+                grid-column: 1/5;
+                grid-row: 1/2;
+                display: flex;
+                justify-content: center;
+            }
+            .logo {
+                font-family: 'Fredoka One', sans-serif;
+                display: flex;
+                align-items: center;
+            }
+            .logo span {
+                font-size: 50%;
+            }
+            .header-second-row-room-container {
+                grid-row: 2;
+                grid-column: 1;
+                visibility: hidden;
+            }
+            .header-third-row-name-container {
+                grid-row: 2;
+                grid-column: 4;
+                visibility: hidden;
+            }
+            .body-container {
+                grid-column: 1/5;
+                grid-row: 3/5;
+                display: flex;
+                justify-content: center;
+/*                height: 100vh;*/
+            }
+            footer {
+                grid-row-start: 5;
+                grid-column-start: 1;
+                grid-column-end: 5;
+                background-color: #2a2a2a;
+                color: #ffffff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .king-gateway {
+                cursor: pointer;
+            }
+            form {
+                display: grid;
+                grid-template-columns: 25% 25% 25% 25%;
+                grid-template-rows: auto auto auto auto 1fr;
+                grid-row-gap: 1.5rem;
+            }
+            form input[type=text] {
+                width: 100%;
+                padding: 3.5%;
+                font-size: 18px; 
+                font-family: monospace;
+                margin-top: 2%;
+            }
+            .section-room {
+                grid-column: 1/5;
+                grid-row: 1;
+            }
+            .section-name {
+                grid-column: 1/5;
+                grid-row: 2;
+            }
+            form button {
+                grid-column: 1/5;
+                grid-row: 3;
+                cursor: pointer;
+                padding: 3.5%;
+                width: 100%;
+                background-color: #ffffff;
+                color: #2a2a2a;
+                border-radius: 3px;
+                border-color: #2a2a2a;
+                transition-property: color, background-color, font-weight;
+                transition-duration: 0.2s;
+                transition-timing-function: ease-out;
+                font-size: 18px;
+            }
+            form button:hover {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                font-weight: bolder;
+            }
+            form h2 {
+                text-align: center;
+                grid-column: 1/5;
+                grid-row: 4;
+                margin-top: 2rem;
+            }
+            .game-container {
+                visibility: hidden;
+            }
+            @media screen and (min-width: 601px) {
+                .buzz-container {
+                    display: grid;
+                    grid-template-columns: 25% 25% 25% 25%;
+                    grid-template-rows: 33% auto auto auto 1fr;
+                    grid-row-gap: 1.5rem;
+                    width: 50%;
+                }
+            }
+            @media screen and (max-width: 600px) {
+                .buzz-container {
+                    display: grid;
+                    grid-template-columns: 25% 25% 25% 25%;
+                    grid-template-rows: 45% auto auto auto 1fr;
+                    grid-row-gap: 1.5rem;
+                    width: 75%;
+                }
+            }
+            .reset-container {
+                display: grid;
+                grid-template-columns: 25% 25% 25% 25%;
+                grid-template-rows: auto auto auto auto 1fr;
+                grid-row-gap: 1.5rem;
+                width: 70%;
+            }
+            .reset-buzzer {
+                /* SPACE + SIZE */
+                grid-row: 1;
+                grid-column: 1/5;
+                padding: 5%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            
+                /* COLOR */
+                background-color: #ffffff;
+                color: #2a2a2a;
+                
+                /* TEXT */
+                font-size: 250%;
+                font-weight: 900;
+                
+                /* BORDER */
+                border-radius: 10px;
+                border: solid 5px #2a2a2a /* #FC5185; */;
+                box-shadow: 10px 10px 5px #aaaaaa;
+                
+                pointer-events: auto;
+                cursor: pointer;
+            }
+            .buzzer {
+                /* SPACE + SIZE */
+                grid-row: 1;
+                grid-column: 1/5;
+                padding: 5%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            
+                /* COLOR */
+                background-color: #FC5185;
+                color: #ffffff;
+                
+                /* TEXT */
+                font-size: 300%;
+                font-weight: 900;
+                
+                /* BORDER */
+                border-radius: 10px;
+                border: solid 5px #FC5185;
+                box-shadow: 10px 10px 5px #aaaaaa;
+                
+                /* BEHAVIOR */
+                transition-property: color, background-color, font-weight;
+                transition-duration: 0.2s;
+                transition-timing-function: ease-out;
+                pointer-events: auto;
+            }
+            .buzzer:hover{
+                animation: breathe 3s linear infinite;
+                cursor: pointer;
+            /*    background-color: #007c57;*/
+/*
+                color: #ffffff;
+                background-color: #FC5185;
+                font-weight: 900; was 100
+*/
+            }
+            @keyframes breathe {
+                0% {
+                    letter-spacing: 1px;
+                    font-size: 300%;
+                }
+                25% {
+                    letter-spacing: 11px;
+                    font-size: 450%;
+                }
+                50% {
+                    letter-spacing: 21px;
+                    font-size: 600%;
+                }
+                75% {
+                    letter-spacing: 11px;
+                    font-size: 450%;
+                }
+                100% {
+                    letter-spacing: 1px;
+                    font-size: 300%;
+                }
+            }
+            .buzz-list-container {
+                grid-row: 2;
+                grid-column: 1/5;
+/*                font-size: 150%;*/
+            }
+            hr {
+                margin-top: 1%;
+            }
+            .buzz-list {
+/*                margin-left: 3%;*/
+                list-style: none;
+            }
+            .buzz-list li {
+                padding: 1%;
+                font-family: monospace;
+                font-size: 18px; 
+            }
+            .king-container {
+                visibility: hidden;
+            }
+        </style>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+            socket.on('consoleMessage', (message) => {
+                console.log(`*New message: ${message}`);
+            })
+            socket.on('enter', (name, room) => {
+                console.log(`R: ${room}, N: ${name}`);
+                if (name && name!== null && room && room !== null) {
+                    console.log(`Emitted ${name} to ${room}`);
+                    userJoinRoom(name, room);
+                } else if (name === "Error: this name is taken. Please try again" && room == null) {
+                    alert(name);
+                } else {
+                    alert("There was an error logging in. Please try again.");
+                }
+            })
+            socket.on('serverToClientBuzz', (name) => {
+                console.log(`External buzz from ${name}`);
+                registerNewBuzz(name);
+            })
+            socket.on('serverToClientReset', (name) => {
+                if (confirm === null) {
+                    console.log("Error with reset request.");
+                } else {
+                    resetBuzzer();
+                }
+                console.log(`External reset from ${name}`);
+            })
+            function userJoinRoom(name, room){
+                setElementValue("playerNameHeader", name);
+                setElementValue("roomNameHeader", room);
+                visibilityChangeFromLogin();
+            }
+            function userRoomLogin(event) {
+                console.log("userRoomLogin called");
+                if (event) {
+                    event.preventDefault();
+                    console.log(event);
+                }
+                let name = document.getElementById("nameInput").value;
+                let room = document.getElementById("roomInput").value;
+                socket.emit('join',name,room);
+                console.log(`Emitted ${name} to ${room}`);
+            }
+            function assignHeaderValues() {
+                console.log("assignHeaderValues called")
+                let name = document.getElementById("nameInput").value;
+                let room = document.getElementById("roomInput").value;
+                setElementValue("playerNameHeader", name);
+                setElementValue("roomNameHeader", room);
+            }
+            function setElementValue(id, value) {
+                let element = document.getElementById(id);
+                element.innerHTML = value;
+            }
+            function getElementValue(id) {
+                return document.getElementById(id).textContent.trim();
+            }
+            function visibilityChangeFromLogin() {
+                changeVisibility("bodyLoginDiv", "hidden");
+                let divsToMakeVisible = ["headerRoomDiv","headerNameDiv","bodyGameDiv"];
+                divsToMakeVisible.forEach(id => changeVisibility(id, "visible"));
+                setElementValue("kingGateway","&nbsp;&#128081;&nbsp;");
+            }
+            function changeVisibility(id, setting) {
+                document.getElementById(id).style.visibility = setting;
+            }
+            function buzz() {
+                document.getElementById("theBuzzer").style.pointerEvents = "none";
+                socket.emit("clientToServerBuzz", getCurrentName());
+            }
+            function registerNewBuzz(name) {
+                addBuzzToList('buzzList',name);
+                addBuzzToList('buzzedPlayerList',name);
+                document.getElementById("theReset").style.pointerEvents = "auto";
+            }
+            function addBuzzToList(id, name) {
+                let newBuzz = document.createElement('li'); 
+                newBuzz.innerHTML = name;
+                let buzzList = document.getElementById(id);
+                buzzList.appendChild(newBuzz);
+            }
+            function callForReset() {
+                socket.emit("clientToServerReset", getCurrentName());
+            }
+            function resetBuzzer() {
+//                var buzzList = document.getElementById('buzzList');
+                setElementValue("buzzList", '');
+                setElementValue("buzzedPlayerList", '');
+                document.getElementById("theBuzzer").style.pointerEvents = "auto";
+                document.getElementById("theReset").style.pointerEvents = "none";
+//                buzzList.innerHTML = '';
+            }
+            function getCurrentName() {
+                let name = getElementValue("playerNameHeader");
+                if (name === "" || name.length > 125) {
+                    let count = Math.floor((Math.random() * 100000) + 1);
+                    //let nameHeader = document.getElementById("playerName");
+                    name = "Neuthaler #" + count;
+                    setElementValue("playerNameHeader", name)
+                    //nameHeader.innerText = name;
+                }
+                return name;
+            }
+            function toggleKingStatus() {
+                console.log("toggleKingStatus called");
+                let status = document.getElementById("kingGateway").textContent;
+                console.log(status);
+                if (status === " 👑 ") {
+                    changeVisibility("bodyGameDiv", "hidden");
+                    changeVisibility("bodyKingDiv", "visible");
+                    setElementValue("kingGateway","&nbsp;&#10060;&nbsp;")
+                } else {
+                    changeVisibility("bodyGameDiv", "visible");
+                    changeVisibility("bodyKingDiv", "hidden");
+                    setElementValue("kingGateway","&nbsp;&#128081;&nbsp;");
+                }
+            }
+        </script>
+    </head>
+    <body>
+    <header>
+        <h2 class="logo">
+            <span>&#9734;&nbsp;&nbsp;&#9734;&nbsp;</span>
+            &nbsp;&nbsp;G&nbsp;U&nbsp;Z&nbsp;Z&nbsp;&nbsp;
+            <span>&nbsp;&#9734;&nbsp;&nbsp;&#9734;</span>
+        </h2>
+    </header>
+    <div class="header-second-row-room-container" id="headerRoomDiv">
+        <h6>&nbsp;ROOM:&nbsp;</h6><h4 id="roomNameHeader">None</h4>
+    </div>
+    <div class="header-third-row-name-container" id="headerNameDiv">
+        <h6>&nbsp;USER:&nbsp;</h6><h4 id="playerNameHeader" contenteditable="true">None</h4>
+    </div>
+    <div class="login-container body-container" id="bodyLoginDiv">
+        <form onsubmit="return userRoomLogin(event)">
+<!--        <form onsubmit="return tellServerBoof2(event)">-->
+            <section class="section-room">
+                <label><strong>Room:</strong></label>
+                <input type="text" id="roomInput" placeholder="Enter Room Name" required>
+            </section>
+            <section class="section-name">
+                <label><strong>Name:</strong></label>
+                <input type="text" id="nameInput" placeholder="Enter User Name" required>
+            </section>
+            <button>Play With Guzz</button>
+            <h2>Join a room to start.</h2>
+        </form>
+    </div>
+    <div class="game-container body-container" id="bodyGameDiv">
+        <div class="buzz-container" id="bodyBuzzDiv">
+        <button class="buzzer" id="theBuzzer" onclick="buzz()">
+            <p>BUZZ</p>
+        </button>
+        <div class="buzz-list-container">
+            <h3>BUZZES:</h3>
+            <hr>
+            <ol class="buzz-list" id="buzzList">
+                <li>Raab</li>
+                <li>Raabson</li>
+                <li>Son of Raab</li>
+                <li>Raab III</li>
+            </ol>
+        </div>
+        </div>
+    </div>
+    <div class="king-container body-container" id="bodyKingDiv">
+        <div class="reset-container" id="bodyResetDiv">
+        <button class="reset-buzzer" id="theReset" onclick="callForReset()">
+            <p>RESET</p>
+        </button>
+        <div class="buzz-list-container">
+            <h3>BUZZES:</h3>
+            <hr>
+            <ol class="buzz-list" id="buzzedPlayerList">
+                <li>Raab</li>
+                <li>Raabson</li>
+                <li>Son of Raab</li>
+                <li>Raab III</li>
+            </ol>
+        </div>
+        </div>
+    </div>
+    <footer>
+        <span>&#9734;&nbsp;&nbsp;&#9734;&nbsp;</span><h1 class="king-gateway" id="kingGateway" onclick="toggleKingStatus()"></h1>
+        <span>&nbsp;&#9734;&nbsp;&nbsp;&#9734;</span>
+    </footer>
+    </body>
+</html>
