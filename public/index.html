@@ -80,6 +80,7 @@
                 font-size: 18px; 
                 font-family: monospace;
                 margin-top: 2%;
+                border: solid 1px #909090
             }
             .section-room {
                 grid-column: 1/5;
@@ -245,6 +246,15 @@
                 font-family: monospace;
                 font-size: 18px; 
             }
+            .buzz-list-sub-heading {
+                display: flex;
+                justify-content: space-between;
+            }
+            .set-buzz-sound {
+                color: #909090;
+                font-style: italic;
+                font-size: 80%;
+            }
             .king-container {
                 visibility: hidden;
             }
@@ -266,8 +276,9 @@
                     alert("There was an error logging in. Please try again.");
                 }
             })
-            socket.on('serverToClientBuzz', (name) => {
-                console.log(`External buzz from ${name}`);
+            socket.on('serverToClientBuzz', (name, sound) => {
+                console.log(`External buzz from ${name} with ${sound}`);
+                playBuzzSound(sound, name);
                 registerNewBuzz(name);
             })
             socket.on('serverToClientReset', (name) => {
@@ -296,8 +307,10 @@
             }
             function assignHeaderValues() {
                 console.log("assignHeaderValues called")
-                let name = document.getElementById("nameInput").value;
-                let room = document.getElementById("roomInput").value;
+                let name = getElementValue("nameInput", "");
+                let room = getElementValue("roomInput", "");
+//                let name = document.getElementById("nameInput").value;
+//                let room = document.getElementById("roomInput").value;
                 setElementValue("playerNameHeader", name);
                 setElementValue("roomNameHeader", room);
             }
@@ -305,8 +318,12 @@
                 let element = document.getElementById(id);
                 element.innerHTML = value;
             }
-            function getElementValue(id) {
-                return document.getElementById(id).textContent.trim();
+            function getElementValue(id, approach) {
+                if (approach === "textContent") {
+                    return document.getElementById(id).textContent.trim();
+                } else {
+                    return document.getElementById(id).value;
+                }
             }
             function visibilityChangeFromLogin() {
                 changeVisibility("bodyLoginDiv", "hidden");
@@ -319,7 +336,7 @@
             }
             function buzz() {
                 document.getElementById("theBuzzer").style.pointerEvents = "none";
-                socket.emit("clientToServerBuzz", getCurrentName());
+                socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
             }
             function registerNewBuzz(name) {
                 addBuzzToList('buzzList',name);
@@ -344,7 +361,7 @@
 //                buzzList.innerHTML = '';
             }
             function getCurrentName() {
-                let name = getElementValue("playerNameHeader");
+                let name = getElementValue("playerNameHeader","textContent");
                 if (name === "" || name.length > 125) {
                     let count = Math.floor((Math.random() * 100000) + 1);
                     //let nameHeader = document.getElementById("playerName");
@@ -353,6 +370,44 @@
                     //nameHeader.innerText = name;
                 }
                 return name;
+            }
+            function getSoundSrc(sound, name) {
+                if (sound === null || sound === "" || !sound || sound === "none") {
+                    return null;
+                } else if(sound === "1up") {
+                    return "/sounds/1up.wav";
+                } else if (sound === "gobi") {
+                    return "/sounds/gobi.wav";       
+                } else if (sound === "chime") {
+                    return "/sounds/chime.wav";       
+                } else if (sound === "coin") {
+                    return "/sounds/coin.wav";       
+                } else if (sound === "ghost") {
+                    return "/sounds/ghost.wav";       
+                } else if (sound === "grow") {
+                    return "/sounds/grow.wav";       
+                } else if (sound === "listen") {
+                    return "/sounds/listen.wav";       
+                } else if (sound === "pipe") {
+                    return "/sounds/pipe.wav";       
+                } else if (sound === "raab") {
+                    return "/sounds/raab.mp3";       
+                } else if (sound === "name") {
+                    console.log(`Attempting to speak ${name}`);
+                    let utterance = new SpeechSynthesisUtterance(name);
+                    window.speechSynthesis.speak(utterance);
+                    return null;
+                } else {
+                    return null;
+                }
+            }
+            function playBuzzSound(sound, name) {
+                console.log(`playBuzzSound called`);
+                const src = getSoundSrc(sound, name);
+                if (src !== null) {
+                    let audio = new Audio(src);
+                    audio.play();
+                }
             }
             function toggleKingStatus() {
                 console.log("toggleKingStatus called");
@@ -405,7 +460,25 @@
             <p>BUZZ</p>
         </button>
         <div class="buzz-list-container">
-            <h3>BUZZES:</h3>
+            <div class="buzz-list-sub-heading">
+                <h3>BUZZES:</h3>
+                <div class="set-buzz-sound">
+                <label for="buzzSounds">Sound:</label>
+                <select name="buzzSounds" id="buzzSounds">
+                    <option value="none">None</option>
+                    <option value="1up">1-Up</option>
+                    <option value="gobi">Beast</option>
+                    <option value="chime">Chime</option>
+                    <option value="coin">Coin</option>
+                    <option value="ghost">Ghost</option>
+                    <option value="grow">Grow</option>
+                    <option value="listen">Listen</option>
+                    <option value="name">Name</option>
+                    <option value="pipe">Pipe</option>
+                    <option value="raab">Raab</option>
+                </select>
+                </div>
+            </div>
             <hr>
             <ol class="buzz-list" id="buzzList">
 <!--

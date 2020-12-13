@@ -48,9 +48,9 @@ io.on('connection', (socket) => {
             }
         }
     })
-    socket.on('clientToServerBuzz', (name) => {
+    socket.on('clientToServerBuzz', (name, sound) => {
         console.log(`New buzz from ${name}, sending to channel ${channelCode}`);
-        io.to(channelCode).emit('serverToClientBuzz',name);
+        io.to(channelCode).emit('serverToClientBuzz',name, sound);
     })
     socket.on('clientToServerReset', (name) => {
         console.log(`New reset from ${name}, sending to channel ${channelCode}`);
