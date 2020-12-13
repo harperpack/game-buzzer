@@ -192,6 +192,6 @@ const getKey = (id, name, room, socket) => {
 
 const getUser = (id) => users.find((user) => user.id === id);
 
-const getUsersInRoom = (room) => users.filter((user) => user.room === room);
+const getUsersInRoom = (room) => users.filter((user) => user.room === room.trim().toLowerCase()).map((user) => user.name);
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom, changeUserConnectionStatus, disconnectSocket, getKey, setConnection };
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, changeUserConnectionStatus, disconnectSocket, getKey, setConnection, getUserByName };

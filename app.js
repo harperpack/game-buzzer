@@ -4,7 +4,7 @@ const http = require('http');
 
 const PORT = process.env.PORT || 8080;
 
-const { addUser, removeUser, getUser, getUsersInRoom, disconnectSocket, getKey, setConnection } = require('./users');
+const { addUser, removeUser, getUser, getUsersInRoom, disconnectSocket, getKey, setConnection, getUserByName } = require('./users');
 
 const app = express();
 const server = http.createServer(app);
@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
                 console.log("Not a null value");
                 console.log(`Channel code: ${channelCode}`);
                 socket.join(channelCode);
-                io.to(channelCode).emit('consoleMessage',`New player ${name} has joined!`);
+                io.to(channelCode).emit('updatePlayerList',getUsersInRoom(room));
                 io.to(socket.id).emit('enter',name,room);
             } else {
                 io.to(socket.id).emit('enter',null,null);
@@ -55,6 +55,15 @@ io.on('connection', (socket) => {
     socket.on('clientToServerReset', (name) => {
         console.log(`New reset from ${name}, sending to channel ${channelCode}`);
         io.to(channelCode).emit('serverToClientReset',name);
+    })
+    socket.on('kickPlayer', (name, room) => {
+        console.log(`Request to kick player ${name} received...`);
+        let user = getUserByName(name, room.trim().toLocaleLowerCase());
+        if (user !== null) {
+            removeUser(user.id, user.name, user.room);
+            io.to(channelCode).emit('updatePlayerList',getUsersInRoom(room));
+        }
+//        setTimeout(function(){ disconnectSocket(uniqueID, socket.id); }, 5000);
     })
     socket.on('disconnect', () => {
         console.log("User has left...",socket.id);

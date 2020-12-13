@@ -6,12 +6,14 @@
         <title>Guzz, a Game Buzzer</title>
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+        <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
         <style>
             * {
                 margin: 0;
                 padding: 0;
                 font-family: sans-serif;
                 box-sizing: border-box;
+                overflow-y: auto;
 /*                overflow: hidden;*/
             }
             body {
@@ -229,6 +231,26 @@
                     font-size: 300%;
                 }
             }
+            .player-list-container {
+                grid-row: 4;
+                grid-column: 1/5;
+/*                font-size: 150%;*/
+            }
+            .player-list {
+/*                margin-left: 3%;*/
+                list-style: none;
+            }
+            .player-list li {
+/*                padding: 1%;*/
+                font-family: monospace;
+                font-size: 18px; 
+            }
+            .player-list li span {
+/*                padding: 1%;*/
+                color: transparent;  
+                text-shadow: 0 0 0 #2a2a2a; 
+                font-size: 85%; 
+            }
             .buzz-list-container {
                 grid-row: 2;
                 grid-column: 1/5;
@@ -261,6 +283,14 @@
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
+            document.addEventListener(
+                "keydown", function(e) {
+                    console.log(e.keyCode);
+                    if (e.keyCode == 32) {
+                        buzz();
+                    }
+                }
+            );
             const socket = io();
             socket.on('consoleMessage', (message) => {
                 console.log(`*New message: ${message}`);
@@ -276,6 +306,10 @@
                     alert("There was an error logging in. Please try again.");
                 }
             })
+            socket.on('updatePlayerList', (nameArray) => {
+                console.log(`New player! Now ${nameArray.length} players.`);
+                updatePlayerList(nameArray);
+            })
             socket.on('serverToClientBuzz', (name, sound) => {
                 console.log(`External buzz from ${name} with ${sound}`);
                 playBuzzSound(sound, name);
@@ -289,6 +323,17 @@
                 }
                 console.log(`External reset from ${name}`);
             })
+            function updatePlayerList(nameArray) {
+                setElementValue("existingPlayerList", '');
+                for (let i=0; i<nameArray.length; i++) {
+                    addBuzzToList("existingPlayerList","<span onclick=\"kickPlayer(this.id)\">&#10060;&nbsp;</span>"+nameArray[i]);
+                }
+            }
+            function kickPlayer(clicked_id) {
+                console.log(`Getting name of element id ${id}`);
+//                let name = getElementValue(id,"");
+//                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"));
+            }
             function userJoinRoom(name, room){
                 setElementValue("playerNameHeader", name);
                 setElementValue("roomNameHeader", room);
@@ -346,6 +391,7 @@
             function addBuzzToList(id, name) {
                 let newBuzz = document.createElement('li'); 
                 newBuzz.innerHTML = name;
+                newBuzz.id = name + Math.floor((Math.random() * 1000) + 1);
                 let buzzList = document.getElementById(id);
                 buzzList.appendChild(newBuzz);
             }
@@ -394,19 +440,28 @@
                     return "/sounds/raab.mp3";       
                 } else if (sound === "name") {
                     console.log(`Attempting to speak ${name}`);
-                    let utterance = new SpeechSynthesisUtterance(name);
-                    window.speechSynthesis.speak(utterance);
+                    talk(name);
                     return null;
                 } else {
                     return null;
                 }
+            }
+            function talk(phrase) {
+                let utterance = new SpeechSynthesisUtterance(phrase);
+                window.speechSynthesis.speak(utterance);
             }
             function playBuzzSound(sound, name) {
                 console.log(`playBuzzSound called`);
                 const src = getSoundSrc(sound, name);
                 if (src !== null) {
                     let audio = new Audio(src);
-                    audio.play();
+                    audio.play().catch(function(){
+                        console.log(`Failed once to play ${sound}, trying again...`);
+                        audio.play().catch(function() {
+                            console.log(`Failed again to play ${sound}, talking instead...`);
+                            talk(`buzz from ${name}`);
+                        });
+                    });
                 }
             }
             function toggleKingStatus() {
@@ -500,6 +555,18 @@
             <h3>BUZZES:</h3>
             <hr>
             <ol class="buzz-list" id="buzzedPlayerList">
+<!--
+                <li>Raab</li>
+                <li>Raabson</li>
+                <li>Son of Raab</li>
+                <li>Raab III</li>
+-->
+            </ol>
+        </div>
+        <div class="player-list-container">
+            <h3>PLAYERS:</h3>
+            <hr>
+            <ol class="player-list" id="existingPlayerList">
 <!--
                 <li>Raab</li>
                 <li>Raabson</li>
