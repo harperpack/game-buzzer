@@ -57,11 +57,18 @@ io.on('connection', (socket) => {
         io.to(channelCode).emit('serverToClientReset',name);
     })
     socket.on('kickPlayer', (name, room) => {
-        console.log(`Request to kick player ${name} received...`);
+        console.log(`Request to kick player ${name} received in ${room}...`);
         let user = getUserByName(name, room.trim().toLocaleLowerCase());
         if (user !== null) {
+            let leavingSocket = io.sockets.connected[user.socket];
+            leavingSocket.leave(channelCode);
             removeUser(user.id, user.name, user.room);
-            io.to(channelCode).emit('updatePlayerList',getUsersInRoom(room));
+            let remainingPlayers = getUsersInRoom(room);
+            if (!remainingPlayers || remainingPlayers == [] || typeof remainingPlayers === 'undefined') {
+                removeRoom(room);
+            } else {
+                io.to(channelCode).emit('updatePlayerList',remainingPlayers);
+            }
         }
 //        setTimeout(function(){ disconnectSocket(uniqueID, socket.id); }, 5000);
     })

@@ -326,13 +326,19 @@
             function updatePlayerList(nameArray) {
                 setElementValue("existingPlayerList", '');
                 for (let i=0; i<nameArray.length; i++) {
-                    addBuzzToList("existingPlayerList","<span onclick=\"kickPlayer(this.id)\">&#10060;&nbsp;</span>"+nameArray[i]);
+                    addBuzzToList("existingPlayerList","<span onclick=\"return kickPlayer(event)\">&#10060;&nbsp;</span>"+nameArray[i]);
                 }
             }
-            function kickPlayer(clicked_id) {
-                console.log(`Getting name of element id ${id}`);
-//                let name = getElementValue(id,"");
-//                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"));
+            function kickPlayer(e) {
+                let clicked_id = e.target.parentNode.id;
+                console.log(`Getting name of element id ${clicked_id}`);
+                let name = getElementValue(clicked_id,"");
+                console.log(`Here is the ${name}`);
+                if (!name || name === 0 || name === "0") {
+                    name = getElementValue(clicked_id,"textContent").substring(2);
+                    console.log(`Here is the textContent ${name}`);
+                }
+                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"));
             }
             function userJoinRoom(name, room){
                 setElementValue("playerNameHeader", name);
@@ -379,9 +385,33 @@
             function changeVisibility(id, setting) {
                 document.getElementById(id).style.visibility = setting;
             }
+            function changeBuzzerStatus() {
+                let buzzer = document.getElementById("theBuzzer");
+                if (buzzer.style.pointerEvents !== "none") {
+                    buzzer.style.pointerEvents = "none";
+                    buzzer.style.backgroundColor = "#909090";
+                    buzzer.style.border = "solid 5px #909090";
+                } else {
+                    buzzer.style.pointerEvents = "auto";
+                    buzzer.style.backgroundColor = "#FC5185";
+                    buzzer.style.border = "solid 5px #FC5185";
+                }
+            }
             function buzz() {
-                document.getElementById("theBuzzer").style.pointerEvents = "none";
-                socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
+                let buzzer = document.getElementById("theBuzzer");
+                if (buzzer.style.pointerEvents !== "none") {
+                    buzzer.style.pointerEvents = "none";
+                    buzzer.style.backgroundColor = "#909090";
+                    buzzer.style.border = "solid 5px #909090";
+                    let buzzStatus = document.getElementById("buzzStatus");
+                    buzzStatus.checked = true;
+                    buzzStatus.disabled = "disabled";
+                    console.log(buzzStatus.disabled);
+                    socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
+                }
+//                document.getElementById("theBuzzer").style.pointerEvents = "none";
+//                document.getElementById("theBuzzer").style.backgroundColor = "#909090";
+//                socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
             }
             function registerNewBuzz(name) {
                 addBuzzToList('buzzList',name);
@@ -391,7 +421,10 @@
             function addBuzzToList(id, name) {
                 let newBuzz = document.createElement('li'); 
                 newBuzz.innerHTML = name;
-                newBuzz.id = name + Math.floor((Math.random() * 1000) + 1);
+                let newBuzzID = "wiggle" + Math.floor((Math.random() * 10000) + 1);
+                newBuzz.id = newBuzzID;
+                console.log(`Tried to make ${newBuzzID} be this ${newBuzz.id}`);
+                console.log(newBuzz);
                 let buzzList = document.getElementById(id);
                 buzzList.appendChild(newBuzz);
             }
@@ -402,13 +435,22 @@
 //                var buzzList = document.getElementById('buzzList');
                 setElementValue("buzzList", '');
                 setElementValue("buzzedPlayerList", '');
-                document.getElementById("theBuzzer").style.pointerEvents = "auto";
-                document.getElementById("theReset").style.pointerEvents = "none";
+                let buzzer = document.getElementById("theBuzzer");
+                if (buzzer.style.pointerEvents === "none") {
+                    buzzer.style.pointerEvents = "auto";
+                    buzzer.style.backgroundColor = "#FC5185";
+                    buzzer.style.border = "solid 5px #FC5185";
+                    let buzzStatus = document.getElementById("buzzStatus");
+                    buzzStatus.checked = false;
+                    buzzStatus.disabled = "";
+                    console.log(buzzStatus.disabled);
+                    document.getElementById("theReset").style.pointerEvents = "none";
+                }
 //                buzzList.innerHTML = '';
             }
             function getCurrentName() {
                 let name = getElementValue("playerNameHeader","textContent");
-                if (name === "" || name.length > 125) {
+                if (name === "" || name.length > 125 || !name) {
                     let count = Math.floor((Math.random() * 100000) + 1);
                     //let nameHeader = document.getElementById("playerName");
                     name = "Neuthaler #" + count;
@@ -517,7 +559,9 @@
         <div class="buzz-list-container">
             <div class="buzz-list-sub-heading">
                 <h3>BUZZES:</h3>
-                <div class="set-buzz-sound">
+                <div class="set-buzz-sound" id="setBuzzSound">
+                <label for="buzzStatus">Buzzer Off:</label>
+                <input type="checkbox" id="buzzStatus" name="buzzStatus" onchange="changeBuzzerStatus()">
                 <label for="buzzSounds">Sound:</label>
                 <select name="buzzSounds" id="buzzSounds">
                     <option value="none">None</option>

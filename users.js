@@ -151,19 +151,48 @@ const disconnectSocket = (id, socket) => {
 }
 
 const removeUser = (id, name, room, index) => {
-    if (index ===  null) {
-        index = users.findIndex((user) => user.id === id && user.room === room && user.name === name);
-    }
-//    const index = users.findIndex((user) => user.id === id && user.room === room && user.name === name);
-//    const remaningUsers = getUsersInRoom(room);
-//    console.log(`Users in ${room} are now: ${remaningUsers}`);
-    if(index !== -1) {
-        console.log(`Found user at ${index}!`);
-//        console.log(`Users in ${room} have become: ${remaningUsers}`);
+    console.log(`Looking to remove id:${id} name:${name} room:${room} index:${index}`);
+    if (index ===  null || !index || typeof index === 'undefined') {
+        for (let i=0; i<users.length; i++) {
+                console.log(
+                    `Looking at user
+                        id:${users[i].id}___
+                        sock:${users[i].socket}___ 
+                        name:${users[i].name}___ 
+                        room:${users[i].room}___ 
+                        conn:${users[i].connected}`);
+                if (users[i].name === name){
+                    console.log(`At least name:${name} is right.`);
+                    if (users[i].room === room) {
+                        console.log(`At least room:${room} is right.`);
+                        if (users[i].id === id) {
+                            console.log(`At least id:${id} is right.`);
+                            return users.splice(i, 1)[0];
+                        }
+                    }
+                }
+            }
+        console.log(`No user to remove?..: ${newUser}`);
+    } else {
         return users.splice(index, 1)[0];
     }
-    console.log(`No user to remove?..: ${newUser}`);
 }
+//    if () {
+//        
+//    }
+////    const index = users.findIndex((user) => user.id === id && user.room === room && user.name === name);
+////    const remaningUsers = getUsersInRoom(room);
+////    console.log(`Users in ${room} are now: ${remaningUsers}`);
+//    if(index !== -1) {
+//        console.log(`Found user at ${index}!`);
+//        if (!index || typeof index === 'undefined') {
+//            console.log(`Now to print each user because we could find nothing:`);
+//        }
+////        console.log(`Users in ${room} have become: ${remaningUsers}`);
+//        return users.splice(index, 1)[0];
+//    }
+//    console.log(`No user to remove?..: ${newUser}`);
+//}
 
 //const removeRoom = (room) => {
 //    const index = rooms.findIndex((aRoom) => aRoom === room);
