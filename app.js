@@ -38,10 +38,9 @@ io.on('connection', (socket) => {
         } else {
             channelCode = getKey(uniqueID, name, room, socket.id);
             if (channelCode !== null) {
-                console.log("Not a null value");
-                console.log(`Channel code: ${channelCode}`);
+                console.log(`Channel code not a null value, it's: ${channelCode}`);
                 socket.join(channelCode);
-                io.to(channelCode).emit('updatePlayerList',getUsersInRoom(room));
+                io.to(channelCode).emit('updatePlayerList', getUsersInRoom(room));
                 io.to(socket.id).emit('enter',name,room);
             } else {
                 io.to(socket.id).emit('enter',null,null);
@@ -61,6 +60,7 @@ io.on('connection', (socket) => {
         let user = getUserByName(name, room.trim().toLocaleLowerCase());
         if (user !== null) {
             let leavingSocket = io.sockets.connected[user.socket];
+            io.to(leavingSocket.id).emit('serverToClientDisconnect');
             leavingSocket.leave(channelCode);
             removeUser(user.id, user.name, user.room);
             let remainingPlayers = getUsersInRoom(room);
@@ -74,7 +74,17 @@ io.on('connection', (socket) => {
     })
     socket.on('disconnect', () => {
         console.log("User has left...",socket.id);
-        setTimeout(function(){ disconnectSocket(uniqueID, socket.id); }, 5000);
+        io.to(socket.id).emit('serverToClientDisconnect');
+        let room = disconnectSocket(uniqueID, socket.id);
+        if (room !== null) {
+            let remainingPlayers = getUsersInRoom(room);
+            if (!remainingPlayers || remainingPlayers == [] || typeof remainingPlayers === 'undefined') {
+                removeRoom(room);
+            } else {
+                io.to(channelCode).emit('updatePlayerList',remainingPlayers);
+            }
+        }
+//        setTimeout(function(){ disconnectSocket(uniqueID, socket.id); }, 5000);
     })
 });
 

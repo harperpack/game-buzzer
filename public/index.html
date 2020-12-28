@@ -118,9 +118,11 @@
                 grid-row: 4;
                 margin-top: 2rem;
             }
+/*
             .game-container {
                 visibility: hidden;
             }
+*/
             @media screen and (min-width: 601px) {
                 .buzz-container {
                     display: grid;
@@ -209,6 +211,27 @@
                 font-weight: 900; was 100
 */
             }
+/*
+            .newBuzzNow {
+                animation: buzzWiggle 1.5s linear infinite;
+            }
+*/
+/*
+             This is straight from tutorialspoint 
+            @keyframes buzzWiggle {
+                0% { transform: skewX(9deg); } 
+                10% { transform: skewX(-8deg); } 
+                20% { transform: skewX(7deg); } 
+                30% { transform: skewX(-6deg); } 
+                40% { transform: skewX(5deg); } 
+                50% { transform: skewX(-4deg); } 
+                60% { transform: skewX(3deg); } 
+                70% { transform: skewX(-2deg); } 
+                80% { transform: skewX(1deg); } 
+                90% { transform: skewX(0deg); } 
+                100% { transform: skewX(0deg); }
+            }
+*/
             @keyframes breathe {
                 0% {
                     letter-spacing: 1px;
@@ -277,8 +300,41 @@
                 font-style: italic;
                 font-size: 80%;
             }
-            .king-container {
+            .king-container, .disconnect-container, .game-container {
                 visibility: hidden;
+            }
+            .message-container {
+                display: grid;
+                grid-template-columns: 10% 10% 10% 10% 10% 10% 10% 10% 10% 10%;
+                grid-template-rows: auto auto auto auto;
+/*                grid-template-rows: auto auto auto auto 1fr;*/
+/*                grid-row-gap: 1.5rem;*/
+                width: 70%;
+                height: 70%;
+                border: solid 3px #FC5185;
+                border-radius: 10px;
+            }
+            .message-header {
+                grid-column: 1/11;
+                grid-row: 1;
+                display: flex;
+                justify-content: center;
+                font-size: 500%;
+                color: #FC5185;
+            }
+            .disconnect-message {
+                grid-column: 2/10;
+                font-size: 150%;
+                color: #FC5185;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .first-line-message {
+                grid-row: 2;
+            }
+            .second-line-message {
+                grid-row: 3;
             }
         </style>
         <script src="/socket.io/socket.io.js"></script>
@@ -316,12 +372,16 @@
                 registerNewBuzz(name);
             })
             socket.on('serverToClientReset', (name) => {
-                if (confirm === null) {
+                if (name === null) {
                     console.log("Error with reset request.");
                 } else {
                     resetBuzzer();
                 }
                 console.log(`External reset from ${name}`);
+            })
+            socket.on('serverToClientDisconnect', () => {
+                console.log(`Disconnect order received from server...`);
+                disconnect();
             })
             function updatePlayerList(nameArray) {
                 setElementValue("existingPlayerList", '');
@@ -416,7 +476,17 @@
             function registerNewBuzz(name) {
                 addBuzzToList('buzzList',name);
                 addBuzzToList('buzzedPlayerList',name);
-                document.getElementById("theReset").style.pointerEvents = "auto";
+                let reset = document.getElementById("theReset");
+                if (reset.style.color === "#2a2a2a" || reset.style.color === "rgb(42, 42, 42)" || reset.style.color === "" || !reset.style.color) {
+                    reset.style.color = "#ffffff";
+                    reset.style.backgroundColor = "#FC5185";
+                    reset.style.border = "solid 5px #FC5185";
+                    reset.style.className = "reset-buzzer newBuzzNow";
+                    setTimeout(function(){ reset.style.className = "reset-buzzer"; }, 1500);
+                } else {
+                    console.log(reset.style.color);
+                    console.log(reset.style.backgroundColor);
+                }
             }
             function addBuzzToList(id, name) {
                 let newBuzz = document.createElement('li'); 
@@ -431,10 +501,21 @@
             function callForReset() {
                 socket.emit("clientToServerReset", getCurrentName());
             }
+            function resetReseter() {
+                let reset = document.getElementById("theReset");
+                reset.style.backgroundColor = "#ffffff";
+                reset.style.color = "#2a2a2a";
+                reset.style.border = "solid 5px #2a2a2a";
+                reset.style.className = "reset-buzzer";
+                console.log("Reset!");
+                console.log(`Background color is now: ${reset.style.backgroundColor}`);
+                console.log(`Font color is now: ${reset.style.color}`);
+            }
             function resetBuzzer() {
 //                var buzzList = document.getElementById('buzzList');
                 setElementValue("buzzList", '');
                 setElementValue("buzzedPlayerList", '');
+                resetReseter();
                 let buzzer = document.getElementById("theBuzzer");
                 if (buzzer.style.pointerEvents === "none") {
                     buzzer.style.pointerEvents = "auto";
@@ -444,7 +525,6 @@
                     buzzStatus.checked = false;
                     buzzStatus.disabled = "";
                     console.log(buzzStatus.disabled);
-                    document.getElementById("theReset").style.pointerEvents = "none";
                 }
 //                buzzList.innerHTML = '';
             }
@@ -522,6 +602,17 @@
                     setElementValue("kingGateway","&nbsp;&#128081;&nbsp;");
                 }
             }
+            function disconnect() {
+                console.log(`Disconnecting...`);
+                changeVisibility("bodyGameDiv", "hidden");
+                changeVisibility("bodyKingDiv", "hidden");
+                changeVisibility("bodyLoginDiv", "hidden");
+                setElementValue("kingGateway","");
+                changeVisibility("kingGateway", "hidden");
+                changeVisibility("headerRoomDiv", "hidden");
+                changeVisibility("headerNameDiv", "hidden");
+                changeVisibility("bodyDisconnectDiv", "visible");
+            }
         </script>
     </head>
     <body>
@@ -538,6 +629,7 @@
     <div class="header-third-row-name-container" id="headerNameDiv">
         <h6>&nbsp;USER:&nbsp;</h6><h4 id="playerNameHeader" contenteditable="true">None</h4>
     </div>
+        
     <div class="login-container body-container" id="bodyLoginDiv">
         <form onsubmit="return userRoomLogin(event)">
 <!--        <form onsubmit="return tellServerBoof2(event)">-->
@@ -553,6 +645,7 @@
             <h2>Join a room to start.</h2>
         </form>
     </div>
+        
     <div class="game-container body-container" id="bodyGameDiv">
         <div class="buzz-container" id="bodyBuzzDiv">
         <button class="buzzer" id="theBuzzer" onclick="buzz()">
@@ -583,47 +676,45 @@
             </div>
             <hr>
             <ol class="buzz-list" id="buzzList">
-<!--
-                <li>Raab</li>
-                <li>Raabson</li>
-                <li>Son of Raab</li>
-                <li>Raab III</li>
--->
             </ol>
         </div>
         </div>
     </div>
+        
     <div class="king-container body-container" id="bodyKingDiv">
         <div class="reset-container" id="bodyResetDiv">
         <button class="reset-buzzer" id="theReset" onclick="callForReset()">
-            <p>RESET</p>
+            RESET
+<!--            <p>RESET</p>-->
         </button>
         <div class="buzz-list-container">
             <h3>BUZZES:</h3>
             <hr>
             <ol class="buzz-list" id="buzzedPlayerList">
-<!--
-                <li>Raab</li>
-                <li>Raabson</li>
-                <li>Son of Raab</li>
-                <li>Raab III</li>
--->
             </ol>
         </div>
         <div class="player-list-container">
             <h3>PLAYERS:</h3>
             <hr>
             <ol class="player-list" id="existingPlayerList">
-<!--
-                <li>Raab</li>
-                <li>Raabson</li>
-                <li>Son of Raab</li>
-                <li>Raab III</li>
--->
             </ol>
         </div>
         </div>
     </div>
+        
+    <div class="disconnect-container body-container" id="bodyDisconnectDiv">
+        <div class="message-container">
+            <h1 class="message-header">&#9888;</h1>
+<!--            <span>&#9888;</span>-->
+            <h2 class="disconnect-message first-line-message">
+                You are disconnected.
+            </h2>
+            <h2 class="disconnect-message second-line-message">
+                Refresh page to play.
+            </h2>
+        </div>
+    </div>
+        
     <footer>
         <span>&#9734;&nbsp;&nbsp;&#9734;&nbsp;</span><h1 class="king-gateway" id="kingGateway" onclick="toggleKingStatus()"></h1>
         <span>&nbsp;&#9734;&nbsp;&nbsp;&#9734;</span>

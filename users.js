@@ -111,6 +111,11 @@ const printRoom = (room) => {
     console.log(`Room: ${room.room}, ${room.count}, ${room.key}`);
 }
 
+const printUser = (user) => {
+    id, name, room, connected, socket
+    console.log(`User: ${user.id}, ${user.name}, ${user.room}, ${user.connected}, ${user.socket}`);
+}
+
 const removeRoom = (room) => {
     console.log(`Asked to remove ${room}...`);
     console.log(`Here are the current rooms:`);
@@ -120,7 +125,7 @@ const removeRoom = (room) => {
         for (let i = 0; i < users.length; i++) {
             if (users[i].room === room) {
                 if (users[i].connected === true) {
-                    console.log(`User ${name} is connected?`);
+                    console.log(`User ${users[i].name} is connected?`);
                 }
                 removeUser(users[i].id, users[i].name, users[i].room, i);
             }
@@ -137,17 +142,32 @@ const disconnectSocket = (id, socket) => {
     for (let i = 0; i < users.length; i++) {
         console.log(`Looking at ${users[i].name}...`);
         console.log(`It has ${users[i].socket} vs. socket disconnecting ${socket}`);
+        if (users[i] ===  null || !users[i] || typeof users[i] === 'undefined') {
+            console.log(`Problem finding user with socket:${socket} and id:${id}...`);
+            console.log(`These are the users remaining:`);
+            users.forEach(u => printUser(u));
+            rooms.forEach(r => printRoom(r));
+            return null;
+        }
         if (users[i].id === id && users[i].socket === socket) {
             users[i].connected = false;
-            console.log(`${socket} on ${id} has been disconnected.`)
+            console.log(`${socket} on ${id} has been disconnected.`);
+            let removingRoom = users[i].room;
+            removeUser(users[i].id, users[i].name, users[i].room);
             const index = users.findIndex((user) => user.name !== users[i].name && user.room === users[i].room && user.connected === true);
-            if (index === -1) {
-                console.log(`No users left connected in ${users[i].room}...`);
-                removeRoom(users[i].room);
+            if (index ===  null || !index || typeof index === 'undefined') {
+                console.log(`Problem finding user with socket:${socket} and id:${id}...`);
+                return null;
             }
-            break;
+            if (index === -1) {
+                console.log(`No users left connected in ${removingRoom}...`);
+                removeRoom(removingRoom);
+                return null;
+            }
+            return removingRoom;
         }
     }
+    return null;
 }
 
 const removeUser = (id, name, room, index) => {
