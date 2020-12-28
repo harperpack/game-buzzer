@@ -60,7 +60,9 @@ io.on('connection', (socket) => {
         let user = getUserByName(name, room.trim().toLocaleLowerCase());
         if (user !== null) {
             let leavingSocket = io.sockets.connected[user.socket];
+            console.log(`ChannelCode is:${channelCode}, and my ID is:${socket.id}, and lsID is:${leavingSocket.id}, and usID is:${user.socket}`);
             io.to(leavingSocket.id).emit('serverToClientDisconnect');
+//            io.to(user.socket).emit('serverToClientDisconnect');
             leavingSocket.leave(channelCode);
             removeUser(user.id, user.name, user.room);
             let remainingPlayers = getUsersInRoom(room);

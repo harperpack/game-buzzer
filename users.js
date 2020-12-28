@@ -7,6 +7,7 @@ const getARoom = (room, key) => {
     const existingRoom = rooms.find((aRoom) => aRoom.room === room);
     if (!existingRoom) {
         const count = 0;
+        key = key + "||--ROOM";
         const newRoom = { room, count, key};
         console.log(`RoomObj [${newRoom.room}, ${newRoom.count}, ${newRoom.key}] is now made!`);
         rooms.push(newRoom);
@@ -112,7 +113,6 @@ const printRoom = (room) => {
 }
 
 const printUser = (user) => {
-    id, name, room, connected, socket
     console.log(`User: ${user.id}, ${user.name}, ${user.room}, ${user.connected}, ${user.socket}`);
 }
 
