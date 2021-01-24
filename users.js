@@ -68,6 +68,18 @@ const changeConnection = (id, name, room, socket) => {
     }
 }
 
+const isDuplicate = ( name, room ) => {
+    for (let i = 0; i < users.length; i++) {
+        if (users[i].room === room.room || users[i].room.trim().toLowerCase() === room.room) {
+            if (users[i].name === name || users[i].name.trim().toLowerCase() === name) {
+//                console.log(`Found match for ${name} in ${room.room} --> ${users[i].name} | ${users[i].room}`);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 const addUser = ( id, name, room, socket ) => {
 //    console.log(`addUser called to add ${id} named ${name} to room called ${room}`);
     //name = name.trim().toLowerCase();
@@ -76,29 +88,32 @@ const addUser = ( id, name, room, socket ) => {
     room = room.trim().toLowerCase();
     const existingUser = getUser(id, socket);
     //    const existingUser = getUserByName(name, room);
-    if (!doesNotExist(existingUser)) {
-        if (existingUser.connected === false) {
-            const oldSocket = existingUser.socket;
-            const reconnectedUser = changeConnection(id, name, room, socket);
-            console.log(`Reconnected user: ${reconnectedUser.name}, new socket ${reconnectedUser.socket} from old of ${oldSocket}`);
-            return { reconnectedUser };
-        }
-        console.log(`Username is taken: ${name}`);
-        return null;
-//        return { error: 'Username is taken.' };
-    }
-    const connected = true;
-    const newUser = { id, name, room, connected, socket };
-    users.push(newUser);
-    console.log(`NEW user: ${newUser.name}, ${newUser.socket}`);
     const index = rooms.findIndex((aRoom) => aRoom.room === room);
-    if (index !== -1) {
+    if (index !== -1 && !doesNotExist(index, true)) {
+        if (!doesNotExist(existingUser)) {
+            if (existingUser.connected === false) {
+                const oldSocket = existingUser.socket;
+                const reconnectedUser = changeConnection(id, name, room, socket);
+                console.log(`Reconnected user: ${reconnectedUser.name}, new socket ${reconnectedUser.socket} from old of ${oldSocket}`);
+                return { reconnectedUser };
+            }
+            console.log(`You seem to be already logged in to Guzz. Please refresh and try again.`);
+            return null;
+        }
+        if (isDuplicate(name, rooms[index])) {
+            console.log(`This username is taken: ${name}`);
+            return null;
+        }
+        const connected = true;
+        const newUser = { id, name, room, connected, socket };
+        users.push(newUser);
+        console.log(`NEW user: ${newUser.name}, ${newUser.socket}`);
         rooms[index].count++;
-        console.log(`Now ${rooms[index].count} users in ${room}`);
         return { newUser };
     }
-//    console.log(`Users are now: ${users}`);
-//    return { newUser };
+    console.log(`There seems to be a problem with your room. Please refresh and try again.`);
+    console.log(`This is the ${index}`);
+    return null;
 }
 
 const printRoom = (room) => {
@@ -155,7 +170,7 @@ const disconnectSocket = (id, socket) => {
             console.log(`${socket} on ${id} has been disconnected.`);
             let removingRoom = users[i].room;
             removeUser(users[i].id, users[i].name, users[i].room);
-            const index = users.findIndex((user) => user.name !== users[i].name && user.room === users[i].room && user.connected === true);
+            let index = users.findIndex((user) => user.name !== users[i].name && user.room === users[i].room && user.connected === true);
 //            let index = -1;
             for (let ii = 0; ii < users.length; ii++) {
                 if (users[ii].name !== users[i].name && users[ii].room === users[i].room) {
@@ -163,7 +178,7 @@ const disconnectSocket = (id, socket) => {
                     break;
                 }
             }
-            if (doesNotExist(index)) {
+            if (doesNotExist(index, true)) {
                 console.log(`Problem finding user with socket:${socket} and id:${id}...`);
                 return null;
             }
@@ -180,7 +195,7 @@ const disconnectSocket = (id, socket) => {
 
 const removeUser = (id, name, room, index) => {
     console.log(`Looking to remove id:${id} name:${name} room:${room} index:${index}`);
-    if (doesNotExist(index)) {
+    if (doesNotExist(index, true)) {
         for (let i=0; i<users.length; i++) {
                 if (users[i].name === name){
 //                    console.log(`At least name:${name} is right.`);
@@ -251,7 +266,10 @@ const getKey = (id, name, room, socket) => {
     return String(keyRoom.key);
 }
 
-const doesNotExist = (entity) => {
+const doesNotExist = (entity, countZero) => {
+    if (countZero === true && entity === 0) {
+        return false;
+    }
     if (entity === null || !entity || typeof entity === 'undefined') {
         return true;
     }
