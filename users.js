@@ -3,65 +3,58 @@ const users = [];
 
 const getARoom = (room, key) => {
     room = room.trim().toLowerCase();
-    console.log(`Searching for this room, if it's not already made: ${room}`)
+//    console.log(`Searching for this room, if it's not already made: ${room}`);
     const existingRoom = rooms.find((aRoom) => aRoom.room === room);
     if (!existingRoom) {
         const count = 0;
         key = key + "||--ROOM";
         const newRoom = { room, count, key};
-        console.log(`RoomObj [${newRoom.room}, ${newRoom.count}, ${newRoom.key}] is now made!`);
+        console.log(`NEW RoomObj [${newRoom.room}, ${newRoom.count}, ${newRoom.key}] is now made!`);
         rooms.push(newRoom);
         console.log(`Now rooms are:`);
         rooms.forEach(r => printRoom(r));
         return newRoom;
-    } //else {
-//        existingRoom.count++;
-//        console.log(`${existingRoom.count} users now in ${room}`);
-//    }
-    //console.log(`Currently available rooms:`);
-    //rooms.forEach(printRoom);
-    console.log(`Made it bud: other rooms:`);
-    rooms.forEach(r => printRoom(r));
+    }
     return existingRoom;
 }
 
-const getUserByName = (name, room) => {
-    console.log(`Looking for ${name} in ${room}...`);
-    for (let i = 0; i < users.length; i++) {
-        console.log(`Looking at ${users[i].name} in ${users[i].room}`);
-        if (users[i].room === room && users[i].name === name) {
-            console.log(`Got a ${name} in ${room} already.`);
-            return users[i];
-        }
-    }
-    console.log(`*** Could not find ${name} ***`);
-    return null;
-}
+//const getUserByName = (name, room) => {
+////    console.log(`Looking for ${name} in ${room}...`);
+//    for (let i = 0; i < users.length; i++) {
+////        console.log(`Looking at ${users[i].name} in ${users[i].room}`);
+//        if (users[i].room === room && users[i].name === name) {
+//            console.log(`Got a ${name} in ${room} already.`);
+//            return users[i];
+//        }
+//    }
+////    console.log(`*** Could not find ${name} ***`);
+//    return null;
+//}
 
-const changeUserConnectionStatus = (id, name, room) => {
-    for (let i = 0; i < users.length; i++) {
-        if (users[i].room === room && users[i].name === name && users[i].id === id) {
-            console.log(`Conn status: ${users[i].connected}`);
-            users[i].connected = !users[i].connected;
-            console.log(`New conn status: ${users[i].connected}`);
-            return users[i];
-        }
-    }
-    return null;
-}
+//const changeUserConnectionStatus = (id, name, room) => {
+//    for (let i = 0; i < users.length; i++) {
+//        if (users[i].room === room && users[i].name === name && users[i].id === id) {
+//            console.log(`Conn status: ${users[i].connected}`);
+//            users[i].connected = !users[i].connected;
+//            console.log(`New conn status: ${users[i].connected}`);
+//            return users[i];
+//        }
+//    }
+//    return null;
+//}
 
-const setConnection = (id, socket) => {
-    for (let i = 0; i < users.length; i++) {
-        if (users[i].id === id && users[i].connected === false) {
-            const old = users[i].connected;
-            users[i].connected = !users[i].connected;
-            users[i].socket = socket;
-            console.log(`Changed ${name} to ${users[i].connected} from ${old}`);
-            return users[i];
-        }
-    }
-    return null;
-}
+//const setConnection = (id, socket) => {
+//    for (let i = 0; i < users.length; i++) {
+//        if (users[i].id === id && users[i].connected === false) {
+//            const old = users[i].connected;
+//            users[i].connected = !users[i].connected;
+//            users[i].socket = socket;
+//            console.log(`Changed ${name} to ${users[i].connected} from ${old}`);
+//            return users[i];
+//        }
+//    }
+//    return null;
+//}
 
 const changeConnection = (id, name, room, socket) => {
     for (let i = 0; i < users.length; i++) {
@@ -81,10 +74,10 @@ const addUser = ( id, name, room, socket ) => {
     if(!name || !room) return { error: 'Username and room are required.' };
     let theRoom = getARoom(room, socket);
     room = room.trim().toLowerCase();
-    const existingUser = getUserByName(name, room);
-    if (existingUser !== null) {
-        if (existingUser.id === id && existingUser.connected === false) {
-//            const reconnectedUser = changeUserConnectionStatus(id, name, room);
+    const existingUser = getUser(id, socket);
+    //    const existingUser = getUserByName(name, room);
+    if (!doesNotExist(existingUser)) {
+        if (existingUser.connected === false) {
             const oldSocket = existingUser.socket;
             const reconnectedUser = changeConnection(id, name, room, socket);
             console.log(`Reconnected user: ${reconnectedUser.name}, new socket ${reconnectedUser.socket} from old of ${oldSocket}`);
@@ -97,7 +90,7 @@ const addUser = ( id, name, room, socket ) => {
     const connected = true;
     const newUser = { id, name, room, connected, socket };
     users.push(newUser);
-    console.log(`New user: ${newUser.name}, ${newUser.socket}`);
+    console.log(`NEW user: ${newUser.name}, ${newUser.socket}`);
     const index = rooms.findIndex((aRoom) => aRoom.room === room);
     if (index !== -1) {
         rooms[index].count++;
@@ -109,17 +102,24 @@ const addUser = ( id, name, room, socket ) => {
 }
 
 const printRoom = (room) => {
-    console.log(`Room: ${room.room}, ${room.count}, ${room.key}`);
+    if (doesNotExist(room)) {
+        console.log(`...no valid room object to print...`);
+    } else {
+        console.log(`Room: ${room.room}, ${room.count}, ${room.key}`);
+    }
 }
 
 const printUser = (user) => {
-    console.log(`User: ${user.id}, ${user.name}, ${user.room}, ${user.connected}, ${user.socket}`);
+    if (doesNotExist(user)) {
+        console.log(`...no valid user object to print...`);
+    } else {
+        console.log(`User: ${user.id}, ${user.name}, ${user.room}, ${user.connected}, ${user.socket}`);
+    }
 }
 
 const removeRoom = (room) => {
-    console.log(`Asked to remove ${room}...`);
-    console.log(`Here are the current rooms:`);
-    rooms.forEach(printRoom);
+    console.log(`Before DELETE ${room}, existing are:`);
+    rooms.forEach(r => printRoom(r));
     const index = rooms.findIndex((aRoom) => aRoom.room === room);
     if (index !== -1) {
         for (let i = 0; i < users.length; i++) {
@@ -140,12 +140,13 @@ const removeRoom = (room) => {
 const disconnectSocket = (id, socket) => {
     console.log(`Check to set ${socket} to disconnected if in users.`);
     for (let i = 0; i < users.length; i++) {
-        console.log(`Looking at ${users[i].name}...`);
-        console.log(`It has ${users[i].socket} vs. socket disconnecting ${socket}`);
-        if (users[i] ===  null || !users[i] || typeof users[i] === 'undefined') {
+//        console.log(`Looking at ${users[i].name}...`);
+//        console.log(`It has ${users[i].socket} vs. socket disconnecting ${socket}`);
+        if (doesNotExist(users[i])) {
             console.log(`Problem finding user with socket:${socket} and id:${id}...`);
-            console.log(`These are the users remaining:`);
+            console.log(`These are the ${users.length} users remaining:`);
             users.forEach(u => printUser(u));
+            console.log(`These are the ${rooms.length} rooms remaining:`);
             rooms.forEach(r => printRoom(r));
             return null;
         }
@@ -155,7 +156,14 @@ const disconnectSocket = (id, socket) => {
             let removingRoom = users[i].room;
             removeUser(users[i].id, users[i].name, users[i].room);
             const index = users.findIndex((user) => user.name !== users[i].name && user.room === users[i].room && user.connected === true);
-            if (index ===  null || !index || typeof index === 'undefined') {
+//            let index = -1;
+            for (let ii = 0; ii < users.length; ii++) {
+                if (users[ii].name !== users[i].name && users[ii].room === users[i].room) {
+                    index = ii;
+                    break;
+                }
+            }
+            if (doesNotExist(index)) {
                 console.log(`Problem finding user with socket:${socket} and id:${id}...`);
                 return null;
             }
@@ -172,24 +180,27 @@ const disconnectSocket = (id, socket) => {
 
 const removeUser = (id, name, room, index) => {
     console.log(`Looking to remove id:${id} name:${name} room:${room} index:${index}`);
-    if (index ===  null || !index || typeof index === 'undefined') {
+    if (doesNotExist(index)) {
         for (let i=0; i<users.length; i++) {
-                console.log(
-                    `Looking at user
-                        id:${users[i].id}___
-                        sock:${users[i].socket}___ 
-                        name:${users[i].name}___ 
-                        room:${users[i].room}___ 
-                        conn:${users[i].connected}`);
                 if (users[i].name === name){
-                    console.log(`At least name:${name} is right.`);
+//                    console.log(`At least name:${name} is right.`);
                     if (users[i].room === room) {
-                        console.log(`At least room:${room} is right.`);
+//                        console.log(`At least room:${room} is right.`);
                         if (users[i].id === id) {
-                            console.log(`At least id:${id} is right.`);
+//                            console.log(`At least id:${id} is right.`);
+                            for (let j=0; j<rooms.length; j++) {
+                                if (rooms[j].room === room) {
+                                    rooms[j].count--;
+                                    console.log(`Now ${rooms[j].count} users in ${room}`);
+                                    break;
+                                }
+                                console.log(`???: Found no matching rooms: `);
+                                rooms.forEach(r => printRoom(r));
+                            }
                             return users.splice(i, 1)[0];
                         }
                     }
+                    console.log(`Name matched but room:${room} did not match:${users[i].room} or id:${id} did not match:${users[i].id}`);
                 }
             }
         console.log(`No user to remove?..: ${newUser}`);
@@ -223,11 +234,12 @@ const removeUser = (id, name, room, index) => {
 //}
 
 const getKey = (id, name, room, socket) => {
-    console.log(`Seeking key for room ${room}...`);
+//    console.log(`Seeking key for room ${room}...`);
     const keyRoom = getARoom(room);
     room = room.trim().toLowerCase();
-    console.log(room);
-    const user = getUserByName(name, room);
+//    console.log(room);
+//    const user = getUserByName(name, room);
+    const user = getUser(id, socket);
     if (user === null) {
         console.log(`Fucking getUserByName for ${name} was null`);
         return null;
@@ -235,12 +247,19 @@ const getKey = (id, name, room, socket) => {
     if (user.id !== id && user.socket !== socket) {
         return null;
     }
-    console.log(`Sending back the room key ${keyRoom.key}`);
+//    console.log(`Sending back the room key ${keyRoom.key}`);
     return String(keyRoom.key);
 }
 
-const getUser = (id) => users.find((user) => user.id === id);
+const doesNotExist = (entity) => {
+    if (entity === null || !entity || typeof entity === 'undefined') {
+        return true;
+    }
+    return false;
+}
 
-const getUsersInRoom = (room) => users.filter((user) => user.room === room.trim().toLowerCase()).map((user) => user.name);
+const getUser = (id, socket) => users.find((user) => user.id === id && user.socket === socket);
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom, changeUserConnectionStatus, disconnectSocket, getKey, setConnection, getUserByName };
+const getUsersInRoom = (room) => users.filter((user) => user.room === room.trim().toLowerCase()).map((user) => [user.name, user.id, user.socket]);
+
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, disconnectSocket, getKey };

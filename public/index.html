@@ -383,27 +383,53 @@
                 console.log(`Disconnect order received from server...`);
                 disconnect();
             })
+            socket.on('serverPing', () => {
+                setTimeout(function(){ socket.emit('playerPing',''); }, 5000);
+            })
+            socket.on('connect_error', () => {
+                disconnect();
+            })
             function updatePlayerList(nameArray) {
                 setElementValue("existingPlayerList", '');
                 for (let i=0; i<nameArray.length; i++) {
-                    addBuzzToList("existingPlayerList","<span onclick=\"return kickPlayer(event)\">&#10060;&nbsp;</span>"+nameArray[i]);
+                    addBuzzToList("existingPlayerList","<span onclick=\"return kickPlayer(event)\">&#10060;&nbsp;</span>"+nameArray[i][0],nameArray[i][1]+"||tuskwarfare||"+nameArray[i][2]);
                 }
             }
             function kickPlayer(e) {
                 let clicked_id = e.target.parentNode.id;
-                console.log(`Getting name of element id ${clicked_id}`);
+                let idParts = clicked_id.split('||tuskwarfare||');
+                let id = idParts[0];
+                let tuskWarfareSocket = idParts[1];
+                //console.log(`Getting name of element id ${clicked_id}`);
                 let name = getElementValue(clicked_id,"");
-                console.log(`Here is the ${name}`);
+                //console.log(`Here is the ${name}`);
                 if (!name || name === 0 || name === "0") {
                     name = getElementValue(clicked_id,"textContent").substring(2);
-                    console.log(`Here is the textContent ${name}`);
+                    //console.log(`Here is the textContent ${name}`);
                 }
-                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"));
+                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"),id,tuskWarfareSocket);
             }
+//            function kickPlayer(e) {
+//                let clicked_id = e.target.parentNode.id;
+////                console.log(`Getting name of element id ${clicked_id}`);
+//                let name = getElementValue(clicked_id,"");
+////                console.log(`Here is the ${name}`);
+//                if (!name || name === 0 || name === "0") {
+//                    name = getElementValue(clicked_id,"textContent").substring(2);
+////                    console.log(`Here is the textContent ${name}`);
+//                }
+//                let idParts = clicked_id.split('||tuskwarfare||');
+//                let id = idParts[0];
+//                let socket = idParts[1];
+//                console.log(`Attempting to kick ${name} with id ${id} and sock ${socket}`);
+//                socket.emit('kickPlayer', name, getElementValue("roomNameHeader","textContent"), id, socket);
+////                socket.emit('kickPlayer',name,getElementValue("roomNameHeader","textContent"));
+//            }
             function userJoinRoom(name, room){
                 setElementValue("playerNameHeader", name);
                 setElementValue("roomNameHeader", room);
                 visibilityChangeFromLogin();
+                socket.emit('playerPing','');
             }
             function userRoomLogin(event) {
                 console.log("userRoomLogin called");
@@ -474,8 +500,8 @@
 //                socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
             }
             function registerNewBuzz(name) {
-                addBuzzToList('buzzList',name);
-                addBuzzToList('buzzedPlayerList',name);
+                addBuzzToList('buzzList', name, null);
+                addBuzzToList('buzzedPlayerList', name, null);
                 let reset = document.getElementById("theReset");
                 if (reset.style.color === "#2a2a2a" || reset.style.color === "rgb(42, 42, 42)" || reset.style.color === "" || !reset.style.color) {
                     reset.style.color = "#ffffff";
@@ -488,10 +514,13 @@
                     console.log(reset.style.backgroundColor);
                 }
             }
-            function addBuzzToList(id, name) {
+            function addBuzzToList(id, name, customID) {
                 let newBuzz = document.createElement('li'); 
                 newBuzz.innerHTML = name;
-                let newBuzzID = "wiggle" + Math.floor((Math.random() * 10000) + 1);
+                let newBuzzID = customID;
+                if (newBuzzID === null) {
+                    newBuzzID = "wiggle" + Math.floor((Math.random() * 10000) + 1);
+                }
                 newBuzz.id = newBuzzID;
                 console.log(`Tried to make ${newBuzzID} be this ${newBuzz.id}`);
                 console.log(newBuzz);
@@ -530,7 +559,7 @@
             }
             function getCurrentName() {
                 let name = getElementValue("playerNameHeader","textContent");
-                if (name === "" || name.length > 125 || !name) {
+                if (name === "" || name.length > 280 || !name) {
                     let count = Math.floor((Math.random() * 100000) + 1);
                     //let nameHeader = document.getElementById("playerName");
                     name = "Neuthaler #" + count;
@@ -589,7 +618,7 @@
                 }
             }
             function toggleKingStatus() {
-                console.log("toggleKingStatus called");
+//                console.log("toggleKingStatus called");
                 let status = document.getElementById("kingGateway").textContent;
                 console.log(status);
                 if (status === " 👑 ") {
@@ -659,7 +688,7 @@
                 <input type="checkbox" id="buzzStatus" name="buzzStatus" onchange="changeBuzzerStatus()">
                 <label for="buzzSounds">Sound:</label>
                 <select name="buzzSounds" id="buzzSounds">
-                    <option value="none">None</option>
+<!--                    <option value="none">None</option>-->
                     <option value="1up">1-Up</option>
                     <option value="gobi">Beast</option>
                     <option value="chan">Chan</option>
@@ -671,6 +700,7 @@
                     <option value="name">Name</option>
                     <option value="pipe">Pipe</option>
                     <option value="raab">Raab</option>
+                    <option value="none">None</option>
                 </select>
                 </div>
             </div>
