@@ -26,9 +26,11 @@ io.on('connection', (socket) => {
 //    console.log('a user connected: ',socket.id);
     const ip = socket.handshake.headers['x-forwarded-for'] || socket.conn.remoteAddress.split(":")[3];
     const userAgent = socket.handshake.headers['user-agent'];
-    console.log(`New ${userAgent} at ${ip}`);
+    console.log(`New ${userAgent} at ${ip} with ${socket.id}...`);
     const uniqueID = ip + userAgent;
     let channelCode = null;
+    let socketName = '';
+    let socketRoom = '';
     
     socket.on('join', (name, room) => {
 //        console.log(`${name} is joining ${room}!`);
@@ -42,6 +44,8 @@ io.on('connection', (socket) => {
                 socket.join(channelCode);
                 io.to(channelCode).emit('updatePlayerList', getUsersInRoom(room));
                 io.to(socket.id).emit('enter',name,room);
+                socketName = name;
+                socketRoom = room;
             } else {
                 console.log(`Channel code is a NULL VALUE for ${name} joining ${room}`);
                 io.to(socket.id).emit('enter',null,null);
@@ -79,12 +83,13 @@ io.on('connection', (socket) => {
 //        setTimeout(function(){ disconnectSocket(uniqueID, socket.id); }, 5000);
     })
     socket.on('playerPing', () => {
-        console.log(`Received a ping from ${uniqueID}`);
+//        console.log(`Received a ping from ${uniqueID}`);
         setTimeout(function(){ io.to(socket.id).emit('serverPing',''); }, 5000);
-        console.log(`Sending a ping back!`);
+//        console.log(`Sending a ping back!`);
     })
     socket.on('disconnect', () => {
-        console.log("User has left...",socket.id);
+//        console.log("User has left...",socket.id);
+        console.log(`User leaving (name|room: ${socketName}|${socketRoom}) is ${userAgent} at ${ip} with ${socket.id}...`);
         io.to(socket.id).emit('serverToClientDisconnect');
         let room = disconnectSocket(uniqueID, socket.id);
         if (room !== null) {

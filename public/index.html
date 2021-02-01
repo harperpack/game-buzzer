@@ -341,20 +341,23 @@
         <script>
             document.addEventListener(
                 "keydown", function(e) {
-                    console.log(e.keyCode);
+//                    console.log(e.keyCode);
                     if (e.keyCode == 32) {
                         buzz();
                     }
                 }
             );
+//            const startGuzz = Date.now();
+            let latestUpdate = Date.now();
+            let previousUpdate = Date.now();
             const socket = io();
             socket.on('consoleMessage', (message) => {
                 console.log(`*New message: ${message}`);
             })
             socket.on('enter', (name, room) => {
-                console.log(`R: ${room}, N: ${name}`);
+//                console.log(`R: ${room}, N: ${name}`);
                 if (name && name!== null && room && room !== null) {
-                    console.log(`Emitted ${name} to ${room}`);
+//                    console.log(`Emitted ${name} to ${room}`);
                     userJoinRoom(name, room);
                 } else if (name === "Error: this name is taken. Please try again" && room == null) {
                     alert(name);
@@ -363,11 +366,11 @@
                 }
             })
             socket.on('updatePlayerList', (nameArray) => {
-                console.log(`New player! Now ${nameArray.length} players.`);
+//                console.log(`New player! Now ${nameArray.length} players.`);
                 updatePlayerList(nameArray);
             })
             socket.on('serverToClientBuzz', (name, sound) => {
-                console.log(`External buzz from ${name} with ${sound}`);
+//                console.log(`External buzz from ${name} with ${sound}`);
                 playBuzzSound(sound, name);
                 registerNewBuzz(name);
             })
@@ -377,14 +380,29 @@
                 } else {
                     resetBuzzer();
                 }
-                console.log(`External reset from ${name}`);
+//                console.log(`External reset from ${name}`);
             })
             socket.on('serverToClientDisconnect', () => {
                 console.log(`Disconnect order received from server...`);
                 disconnect();
             })
             socket.on('serverPing', () => {
-                setTimeout(function(){ socket.emit('playerPing',''); }, 5000);
+                previousUpdate = latestUpdate;
+                latestUpdate = Date.now();
+                let localLatest = latestUpdate;
+                setTimeout(function() { 
+                    socket.emit('playerPing',''); 
+                }, 5000);
+                setTimeout(function() { 
+                    if (latestUpdate === localLatest) {
+                        console.log(`Lost contact with server per timestamps below...`);
+                        console.log(`Latest ping: ${latestUpdate}; Local latest: ${localLatest}; Previous ping: ${previousUpdate}`);
+                        disconnect();
+                    } else {
+//                        console.log(`SEEM TO BE OK!`);
+//                        console.log(`Latest: ${latestUpdate}; Localest: ${localLatest}; Previous: ${previousUpdate}`);
+                    } 
+                }, 15000);
             })
             socket.on('connect_error', () => {
                 disconnect();
@@ -432,18 +450,20 @@
                 socket.emit('playerPing','');
             }
             function userRoomLogin(event) {
-                console.log("userRoomLogin called");
+//                console.log("userRoomLogin called");
                 if (event) {
                     event.preventDefault();
-                    console.log(event);
+//                    console.log(event);
+                } else {
+                    console.log(`Tried to preventDefault but failed with this: |${event}|`);
                 }
                 let name = document.getElementById("nameInput").value;
                 let room = document.getElementById("roomInput").value;
                 socket.emit('join',name,room);
-                console.log(`Emitted ${name} to ${room}`);
+//                console.log(`Emitted ${name} to ${room}`);
             }
             function assignHeaderValues() {
-                console.log("assignHeaderValues called")
+//                console.log("assignHeaderValues called");
                 let name = getElementValue("nameInput", "");
                 let room = getElementValue("roomInput", "");
 //                let name = document.getElementById("nameInput").value;
@@ -492,7 +512,7 @@
                     let buzzStatus = document.getElementById("buzzStatus");
                     buzzStatus.checked = true;
                     buzzStatus.disabled = "disabled";
-                    console.log(buzzStatus.disabled);
+//                    console.log(buzzStatus.disabled);
                     socket.emit("clientToServerBuzz", getCurrentName(), getElementValue("buzzSounds"));
                 }
 //                document.getElementById("theBuzzer").style.pointerEvents = "none";
@@ -510,8 +530,8 @@
                     reset.style.className = "reset-buzzer newBuzzNow";
                     setTimeout(function(){ reset.style.className = "reset-buzzer"; }, 1500);
                 } else {
-                    console.log(reset.style.color);
-                    console.log(reset.style.backgroundColor);
+//                    console.log(reset.style.color);
+//                    console.log(reset.style.backgroundColor);
                 }
             }
             function addBuzzToList(id, name, customID) {
@@ -553,7 +573,7 @@
                     let buzzStatus = document.getElementById("buzzStatus");
                     buzzStatus.checked = false;
                     buzzStatus.disabled = "";
-                    console.log(buzzStatus.disabled);
+//                    console.log(buzzStatus.disabled);
                 }
 //                buzzList.innerHTML = '';
             }
@@ -620,7 +640,7 @@
             function toggleKingStatus() {
 //                console.log("toggleKingStatus called");
                 let status = document.getElementById("kingGateway").textContent;
-                console.log(status);
+//                console.log(status);
                 if (status === " 👑 ") {
                     changeVisibility("bodyGameDiv", "hidden");
                     changeVisibility("bodyKingDiv", "visible");

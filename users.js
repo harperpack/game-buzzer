@@ -1,3 +1,15 @@
+//TO DO:
+// --> simplify users.js
+// --> simplify logging
+// --> remove prints from index.html
+// --> add teams?
+// --> add messages?
+// --> add animations?
+// --> add handicaps / pranks?
+// --> add score?
+// --> add questions?
+// --> clean up [what?]
+
 const rooms = [];
 const users = [];
 
@@ -153,7 +165,7 @@ const removeRoom = (room) => {
 }
 
 const disconnectSocket = (id, socket) => {
-    console.log(`Check to set ${socket} to disconnected if in users.`);
+//    console.log(`Check to set ${socket} to disconnected if in users.`);
     for (let i = 0; i < users.length; i++) {
 //        console.log(`Looking at ${users[i].name}...`);
 //        console.log(`It has ${users[i].socket} vs. socket disconnecting ${socket}`);
