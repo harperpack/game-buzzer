@@ -339,6 +339,7 @@
         </style>
         <script src="/socket.io/socket.io.js"></script>
         <script>
+            let FIRST_BUZZ_TIME = new Date();
             document.addEventListener(
                 "keydown", function(e) {
 //                    console.log(e.keyCode);
@@ -535,6 +536,18 @@
                 }
             }
             function addBuzzToList(id, name, customID) {
+                let buzzList = document.getElementById(id);
+                if (id === "buzzList" || id === "buzzedPlayerList") {
+                    let secondsTiming = 0;
+                    if (buzzList.getElementsByTagName('li').length < 1) {
+                        FIRST_BUZZ_TIME = new Date();
+                        console.log(`Got our first buzz at ${FIRST_BUZZ_TIME}`);
+                    } else {
+                        let NTH_BUZZ_TIME = new Date();
+                        secondsTiming = (NTH_BUZZ_TIME - FIRST_BUZZ_TIME)/1000;
+                    }
+                    name = name + ` @${secondsTiming}s`
+                }
                 let newBuzz = document.createElement('li'); 
                 newBuzz.innerHTML = name;
                 let newBuzzID = customID;
@@ -544,7 +557,6 @@
                 newBuzz.id = newBuzzID;
 //                console.log(`Tried to make ${newBuzzID} be this ${newBuzz.id}`);
 //                console.log(newBuzz);
-                let buzzList = document.getElementById(id);
                 buzzList.appendChild(newBuzz);
             }
             function callForReset() {
@@ -661,6 +673,7 @@
                 changeVisibility("headerRoomDiv", "hidden");
                 changeVisibility("headerNameDiv", "hidden");
                 changeVisibility("bodyDisconnectDiv", "visible");
+                // reconnect?
             }
         </script>
     </head>

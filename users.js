@@ -165,16 +165,31 @@ const removeRoom = (room) => {
 }
 
 const disconnectSocket = (id, socket) => {
+    try {
+        BADMUSTFIX_disconnectSocket(id, socket);
+    } catch (error) {
+        console.error(`DISCONNECT FN ERROR BELOW---`);
+        console.error(error);
+        printState();
+        return null;
+    }
+}
+
+const printState = () => {
+    console.log(`These are the ${users.length} users remaining:`);
+    users.forEach(u => printUser(u));
+    console.log(`These are the ${rooms.length} rooms remaining:`);
+    rooms.forEach(r => printRoom(r));
+}
+
+const BADMUSTFIX_disconnectSocket = (id, socket) => {
 //    console.log(`Check to set ${socket} to disconnected if in users.`);
     for (let i = 0; i < users.length; i++) {
 //        console.log(`Looking at ${users[i].name}...`);
 //        console.log(`It has ${users[i].socket} vs. socket disconnecting ${socket}`);
         if (doesNotExist(users[i])) {
             console.log(`Problem finding user with socket:${socket} and id:${id}...`);
-            console.log(`These are the ${users.length} users remaining:`);
-            users.forEach(u => printUser(u));
-            console.log(`These are the ${rooms.length} rooms remaining:`);
-            rooms.forEach(r => printRoom(r));
+            printState();
             return null;
         }
         if (users[i].id === id && users[i].socket === socket) {
