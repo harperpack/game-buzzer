@@ -92,7 +92,10 @@ io.on('connection', (socket) => {
         console.log(`User leaving (name|room: ${socketName}|${socketRoom}) is ${userAgent} at ${ip} with ${socket.id}...`);
         io.to(socket.id).emit('serverToClientDisconnect');
         let room = disconnectSocket(uniqueID, socket.id);
-        if (room !== null) {
+        if (room !== null || typeof room !== 'undefined') {
+            room = socketRoom;
+        }
+        if (room !== null || typeof room !== 'undefined') {
             let remainingPlayers = getUsersInRoom(room);
             if (!remainingPlayers || remainingPlayers == [] || typeof remainingPlayers === 'undefined') {
                 removeRoom(room);
